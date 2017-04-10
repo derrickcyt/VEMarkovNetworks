@@ -36,7 +36,7 @@ def main():
     corpus = []
     y = []
     count = 0
-    limit = 5000
+    limit = 2000
     sent_len_threshold = 0
 
     with codecs.open(
@@ -72,7 +72,7 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(pos_tags, y, test_size=0.33, random_state=100)
 
 
-    mn = VEMarkovNetworks(feature_creator.get_feature_num(), feature_creator)
+    mn = VEMarkovNetworks(feature_creator.get_feature_num(), feature_creator, optimize='sgd')
 
     mn.fit(X_train, y_train)
 
