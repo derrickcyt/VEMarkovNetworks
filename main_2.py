@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import numpy as np
-from feature_extract import *
+from feature import *
 from scipy import misc, optimize
-from mn import VEMarkovNetworks
+from mn_2 import VEMarkovNetworks
+import nltk
 
 
 def is_utf8(text):
@@ -35,7 +36,7 @@ def main():
     corpus = []
     y = []
     count = 0
-    limit = 10000
+    limit = 5000
     sent_len_threshold = 0
 
     with codecs.open(
@@ -55,21 +56,27 @@ def main():
                 y.append(0)
                 count += 1
     print "read corpus end.", len(corpus)
-
-    X_train, X_test, y_train, y_test = train_test_split(corpus, y, test_size=0.33, random_state=100)
-
     y_set = [0, 1]
-    f = []
-    f.extend(unigram_pos_f(y_set))
-    f.extend(nn_vb_f(y_set))
-    f.extend(nn_jj_f(y_set))
-    f.extend(rb_vb_f(y_set))
 
-    mn = VEMarkovNetworks(len(f), f)
+    feature_creator = FeatureFunctionCreator(y_set)
 
-    mn.fit(mn.transfer(X_train), y_train)
 
-    y_pred, y_probs = mn.predict(mn.transfer(X_test))
+    pos_tags = []
+    for c in corpus:
+        tokens = nltk.word_tokenize(c)
+        pos_tag = nltk.pos_tag(tokens)
+        pos_tags.append(pos_tag)
+        feature_creator.handle_one_corpu(pos_tag)
+
+
+    X_train, X_test, y_train, y_test = train_test_split(pos_tags, y, test_size=0.33, random_state=100)
+
+
+    mn = VEMarkovNetworks(feature_creator.get_feature_num(), feature_creator)
+
+    mn.fit(X_train, y_train)
+
+    y_pred, y_probs = mn.predict(X_test)
 
     y_test = np.array(y_test)
 

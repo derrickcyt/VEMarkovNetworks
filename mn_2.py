@@ -5,21 +5,12 @@ from scipy import misc, optimize
 
 
 class VEMarkovNetworks(object):
-    def __init__(self, feature_num, feature_list, sigma=10):
+    def __init__(self, feature_num, feature_creator, sigma=10):
         self.w = np.zeros(feature_num, dtype=float)
-        self.f_list = feature_list
+        self.feature_creator = feature_creator
         self.y_set = []
         self.v = sigma ** 2
         self.v2 = self.v * 2
-
-    def transfer(self, corpus):
-        """
-        transfer text to Feature
-        :param corpus: text set
-        :return: Feature set
-        """
-        print "transfer corpus."
-        return [Feature(c) for c in corpus]
 
     def regulariser(self, w):
         return np.sum(w ** 2) / self.v2
@@ -27,21 +18,21 @@ class VEMarkovNetworks(object):
     def regulariser_deriv(self, w):
         return np.sum(w) / self.v
 
-    def fit(self, X_features, y):
+    def fit(self, X_pos_tags, y):
         """
         train model
         :param X: feature through feature_list
         :param y: label
         :return:
         """
-        print "train model."
+        print "train model.", "feature num:", len(self.w)
         self.y_set = list(set(y))
-        l = lambda w: self.neg_likelihood_derivative(X_features, y, w)
+        l = lambda w: self.neg_likelihood_derivative(X_pos_tags, y, w)
         val = optimize.fmin_l_bfgs_b(l, self.w)
         self.w, _, _ = val
         print self.w
 
-    def predict(self, X_features):
+    def predict(self, X_pos_tags):
         """
         predict labels based on X
         :param X: feature through feature_list
@@ -49,8 +40,9 @@ class VEMarkovNetworks(object):
         """
         ret = []
         probs = []
-        for x_features in X_features:
-            f_xm_y = [np.array([f_i(x_features, y_i) for f_i in self.f_list], dtype=float) for y_i in self.y_set]
+        for x_pos_tags in X_pos_tags:
+            f_xm_y = [np.array(self.feature_creator.get_all_feature(x_pos_tags, y_i), dtype=float) for y_i in
+                      self.y_set]
 
             p_y_base_xm = np.exp([np.dot(self.w, f_xm_y[i]) for i in xrange(len(self.y_set))])
 
@@ -64,7 +56,7 @@ class VEMarkovNetworks(object):
 
         return np.array(ret), np.array(probs)
 
-    def neg_likelihood_derivative(self, X_features, y, w):
+    def neg_likelihood_derivative(self, X_pos_tags, y, w):
         """
         function return objective function and derivative function for bfgs optimization
         :param X: features
@@ -74,8 +66,9 @@ class VEMarkovNetworks(object):
         """
         likelihood = 0
         derivative = np.zeros(len(w))
-        for x_features, y_ in zip(X_features, y):
-            f_xm_y = [np.array([f_i(x_features, y_i) for f_i in self.f_list], dtype=float) for y_i in self.y_set]
+        for x_pos_tags, y_ in zip(X_pos_tags, y):
+            f_xm_y = [np.array(self.feature_creator.get_all_feature(x_pos_tags, y_i), dtype=float) for y_i in
+                      self.y_set]
 
             p_y_base_xm = np.exp([np.dot(w, f_xm_y[i]) for i in xrange(len(self.y_set))])
 
