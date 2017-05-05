@@ -36,11 +36,11 @@ def main():
     corpus = []
     y = []
     count = 0
-    limit = 2000
+    limit = 10000
     sent_len_threshold = 0
 
     with codecs.open(
-            "/Users/Derrick/PycharmProjects/opinion_exp/VEMarkovNetworks/data/keyboard_1_rating_verbexpression.txt","r","utf-8") as f:
+            "/Users/Derrick/PycharmProjects/opinion_exp/VEMarkovNetworks/data/mouse_1_rating_title_verbexpression.txt","r","utf-8") as f:
         for line in f:
             if len(nltk.tokenize.word_tokenize(line.strip())) >= sent_len_threshold and count < limit:
                 corpus.append(line.strip())
@@ -49,7 +49,7 @@ def main():
 
     count = 0
     with codecs.open(
-            "/Users/Derrick/PycharmProjects/opinion_exp/VEMarkovNetworks/data/keyboard_5_rating_verbexpression.txt","r","utf-8") as f:
+            "/Users/Derrick/PycharmProjects/opinion_exp/VEMarkovNetworks/data/mouse_5_rating_title_verbexpression.txt","r","utf-8") as f:
         for line in f:
             if len(nltk.tokenize.word_tokenize(line.strip())) >= sent_len_threshold and count < limit:
                 corpus.append(line.strip())
@@ -69,7 +69,7 @@ def main():
         feature_creator.handle_one_corpu(pos_tag)
 
 
-    X_train, X_test, y_train, y_test = train_test_split(pos_tags, y, test_size=0.33, random_state=100)
+    X_train, X_test, y_train, y_test = train_test_split(pos_tags, y, test_size=0.33, random_state=99)
 
 
     mn = VEMarkovNetworks(feature_creator.get_feature_num(), feature_creator, optimize='sgd')
